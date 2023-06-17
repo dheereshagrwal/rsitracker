@@ -28,9 +28,9 @@ export default defineComponent({
           range = "5d";
         }
         const response = await axios.get(
-          `https://query1.finance.yahoo.com/v7/finance/chart/${ticker}?range=${range}&interval=${interval}`
+          `/api/${ticker}?range=${range}&interval=${interval}`
         );
-        console.log("response data", response.data);
+        console.log("response", response);
         const data = response.data.chart.result[0];
         const prices = data.indicators.quote[0];
         const closes = prices.close;
