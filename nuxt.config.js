@@ -15,13 +15,7 @@ export default defineNuxtConfig({
       "defineStore", // import { defineStore } from 'pinia'
     ],
   },
-  axios: {
-    proxy: true, // Can be also an object with default options
-  },
-  proxy: {
-    "/api/": {
-      target: "https://query1.finance.yahoo.com",
-      pathRewrite: { "^/api/": "/v7/finance/chart" },
-    },
+  runtimeConfig: {
+    public: { apiKey: process.env.API_KEY },
   },
 });

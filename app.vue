@@ -1,3 +1,3 @@
 <template>
-  <StockRSI :ticker="'AAPL'" />
+  <StockRSI :ticker="'V'" />
 </template>

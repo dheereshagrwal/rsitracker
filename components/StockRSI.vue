@@ -14,37 +14,33 @@ export default defineComponent({
   },
   setup({ ticker }) {
     console.log("ticker", ticker);
+    const config = useRuntimeConfig();
+    const apiKey = config.public.apiKey;
+    console.log("apiKey", apiKey);
     const store = useMainStore();
     const rsi = ref(0);
-    const currentPrice = ref(null);
-    const previousPrice = ref(null);
     const percentage = ref(null);
     const fetchData = async (req, res) => {
       try {
-        let interval = "1d";
-        let range = "2y";
+        let timespan = "day";
+        let limit = 1;
         if (store.currentView === "RSI 5min") {
-          interval = "5m";
-          range = "5d";
+          timespan = "minute";
+          limit = 5;
         }
         const response = await axios.get(
-          `/api/${ticker}?range=${range}&interval=${interval}`
+          `https://api.polygon.io/v1/indicators/rsi/${ticker}?timestamp=2023-06-16&timespan=${timespan}&adjusted=true&window=14&series_type=close&order=desc&limit=${limit}&apiKey=${apiKey}`
         );
-        console.log("response", response);
-        const data = response.data.chart.result[0];
-        const prices = data.indicators.quote[0];
-        const closes = prices.close;
-        rsi.value = RSI.calculate({ values: closes, period: 14 });
-        rsi.value = rsi.value[rsi.value.length - 1];
+        const values = response?.data?.results?.values;
+        if (values && values.length > 0) {
+          rsi.value = values[values.length - 1].value;
+        }
+        console.log("rsi", rsi.value);
 
-        const currentClose = closes[closes.length - 1];
-        const previousClose = closes[closes.length - 2];
-        currentPrice.value = currentClose.toFixed(2);
-        previousPrice.value = previousClose.toFixed(2);
-
-        const priceDiff = currentClose - previousClose;
-        const percentageDiff = (priceDiff / previousClose) * 100;
-        percentage.value = percentageDiff.toFixed(2);
+        const response2 = await axios.get(
+          `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${ticker}?apiKey=${apiKey}`
+        );
+        percentage.value = response2?.data?.ticker?.todaysChangePerc;
       } catch (error) {
         console.error(error);
       }
@@ -62,7 +58,7 @@ export default defineComponent({
     );
 
     const formattedPercentage = computed(() => {
-      if (percentage.value > 0) {
+      if (percentage?.value > 0) {
         return `+${percentage.value}%`;
       } else {
         return `${percentage.value}%`;
@@ -70,8 +66,6 @@ export default defineComponent({
     });
     return {
       rsi,
-      currentPrice,
-      previousPrice,
       percentage,
       formattedPercentage,
       store,
