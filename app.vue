@@ -20,7 +20,7 @@
         >
         </i>
         <i
-          @click="showDel = !showDel"
+          @click="showDelete = !showDelete"
           class="fa-solid fa-pen-to-square fa-xl"
         ></i>
       </button>
@@ -48,19 +48,19 @@
         </span>
         <button
           class="mx-2 md:mx-4"
-          v-if="!watchlist.editingName & showDel"
+          v-if="!watchlist.editingName & showDelete"
           @click="editWatchlistName(index)"
         >
           <i class="fa-solid fa-pencil"></i>
         </button>
         <button
-          v-if="watchlist.editingName & showDel"
+          v-if="watchlist.editingName & showDelete"
           @click="cancelWatchlistNameEdit(index)"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
         <button
-          v-if="!watchlist.editingName & showDel"
+          v-if="!watchlist.editingName & showDelete"
           @click="deleteWatchlist(index)"
           class="cursor-pointer"
         >
@@ -110,7 +110,7 @@
           @click="saveNotes()"
           class="flex items-center px-5 pt-4 rounded-t-xl bg-zinc-800"
         >
-          <button class="mr-3 rounded-lg text-violet-500" v-if="showDel">
+          <button class="mr-3 rounded-lg text-violet-500" v-if="showDelete">
             <i
               @click="deleteTicker(index)"
               class="fa-solid fa-trash-can fa-lg"
@@ -177,7 +177,7 @@ export default {
       currentWatchlistIndex: 0,
       newTicker: "",
       searchText: "",
-      showDel: false,
+      showDelete: false,
       showSearch: true,
       notes: {},
       showNotes: false,
@@ -211,7 +211,6 @@ export default {
     deleteTicker(index) {
       this.currentWatchlist.tickers.splice(index, 1);
       this.saveTickers();
-      this.showDel = false;
     },
     addWatchlist() {
       const watchlistName = `Watchlist ${this.watchlists.length + 1}`;
