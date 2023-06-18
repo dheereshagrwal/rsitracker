@@ -1,6 +1,5 @@
 <script>
 import { useMainStore } from "~/stores/mainStore";
-import axios from "axios";
 import { computed, onMounted, ref, watch } from "vue";
 
 export default defineComponent({
@@ -12,7 +11,6 @@ export default defineComponent({
     },
   },
   setup({ ticker }) {
-    const config = useRuntimeConfig();
     const store = useMainStore();
     const rsi = ref(0);
     const currentPrice = ref(null);
@@ -72,7 +70,7 @@ export default defineComponent({
       {{ ticker }} <span class="text-xs">{{ store.currentView }}</span>
     </div>
     <div
-      class="absolute font-semibold"
+      class="absolute font-semibold cursor-pointer"
       style="right: 9vw"
       @click="store.toggleView"
     >
