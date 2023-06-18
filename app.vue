@@ -144,13 +144,9 @@
 </template>
 
 <script>
-import StockRSI from "./components/StockRSI.vue";
 import { useUiStore } from "~/stores/ui";
 export default {
   name: "App",
-  components: {
-    StockRSI,
-  },
   setup() {
     const store = useUiStore();
     return {
