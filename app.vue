@@ -84,7 +84,7 @@
     </div>
     <div class="flex flex-col items-center">
       <div
-        v-for="(ticker, index) in showSearch
+        v-for="(ticker, index) in store.showSearch
           ? currentWatchlist.tickers
           : filteredTickers.filteredTickers"
         :key="ticker"
