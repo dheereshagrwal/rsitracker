@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* add bg-neutral-900 to root */
+html {
+  @apply bg-neutral-900;
+  @apply scroll-smooth;
+}

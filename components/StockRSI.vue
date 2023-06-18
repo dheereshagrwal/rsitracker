@@ -1,7 +1,6 @@
 <script>
 import { useMainStore } from "~/stores/mainStore";
 import axios from "axios";
-import { RSI } from "technicalindicators";
 import { computed, onMounted, ref, watch } from "vue";
 
 export default defineComponent({
@@ -34,7 +33,7 @@ export default defineComponent({
         );
         const values = response?.data?.results?.values;
         if (values && values.length > 0) {
-          rsi.value = values[values.length - 1].value;
+          rsi.value = values[values.length - 1].value.toFixed(2);
         }
         console.log("rsi", rsi.value);
 
@@ -83,14 +82,14 @@ export default defineComponent({
 </script>
 
 <template>
-  <div style="display: flex; justify-content: space-between">
-    <div>
-      {{ ticker }} <span style="font-size: 10px">{{ store.currentView }}</span>
+  <div class="flex justify-between">
+    <div class="text-lg uppercase">
+      {{ ticker }} <span class="text-xs">{{ store.currentView }}</span>
     </div>
-    <div style="position: absolute; right: 8vw" @click="store.toggleView">
+    <div class="absolute font-semibold" style="right: 9vw" @click="store.toggleView">
       <div
         v-if="store.currentView !== 'Price'"
-        :class="{ 'rsi-red': rsi >= 65, 'rsi-green': rsi <= 30 }"
+        :class="{ 'text-red-500': rsi >= 65, 'text-green-500': rsi <= 30 }"
       >
         {{ rsi }}
       </div>
@@ -98,8 +97,8 @@ export default defineComponent({
         {{ currentPrice }}
         <span
           :class="{
-            'stock-increase': percentage > 0,
-            'stock-decrease': percentage < 0,
+            'text-green-500 ml-1': percentage > 0,
+            'text-red-500 ml-1': percentage < 0,
           }"
         >
           ({{ formattedPercentage }})
@@ -108,26 +107,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-<style>
-.rsi-red {
-  color: rgb(252, 75, 59);
-}
-
-.rsi-green {
-  color: rgb(59, 170, 76);
-}
-
-.stock-increase {
-  color: rgb(59, 170, 76);
-  margin-left: 5px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.stock-decrease {
-  color: rgb(252, 75, 59);
-  margin-left: 5px;
-  font-size: 14px;
-  font-weight: 600;
-}
-</style>

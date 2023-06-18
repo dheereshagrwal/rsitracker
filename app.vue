@@ -1,144 +1,232 @@
 <template>
-  <link
+  <Head>
+    <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
+      href="https://cdn.jsdelivr.net/gh/dheereshagrwal/colored-icons@1.6.0/ci.css"
     />
-  <h1 style="margin-left: 18px">
-    RSI Tracker
-    <span style="position: absolute; right: 30px">
-      <i
-        @click="showSearch = !showSearch"
-        :class="
-          showSearch
-            ? 'fa-solid fa-search fa-xs'
-            : 'fa-solid fa-arrow-trend-up fa-xs'
-        "
-        style="margin: 0px 25px"
-      >
-      </i>
-      <i
-        @click="showDel = !showDel"
-        class="fa-solid fa-pen-to-square fa-xs"
-      ></i>
-    </span>
-  </h1>
+  </Head>
 
-  <div v-if="showSearch" class="tabs">
-    <div
-      v-for="(watchlist, index) in watchlists"
-      :key="index"
-      :class="{ active: currentWatchlistIndex === index }"
-      @click="switchWatchlist(index)"
-    >
-      <span v-if="!watchlist.editingName">{{ watchlist.name }}</span>
-      <span v-if="watchlist.editingName">
-        <input
-          type="text"
-          v-model="watchlist.newName"
-          @keydown.enter="renameWatchlist(index)"
-          @blur="renameWatchlist(index)"
-        />
-      </span>
-      <span
-        class="edit-icon"
-        v-if="!watchlist.editingName & showDel"
-        @click="editWatchlistName(index)"
-      >
-        <i class="fa-solid fa-pencil"></i>
-      </span>
-      <span
-        class="edit-icon"
-        v-if="watchlist.editingName & showDel"
-        @click="cancelWatchlistNameEdit(index)"
-      >
-        <i class="fa-solid fa-times"></i>
-      </span>
-      <span
-        class="delete-icon"
-        v-if="!watchlist.editingName & showDel"
-        @click="deleteWatchlist(index)"
-      >
-        <i class="fa-solid fa-trash-can"></i>
-      </span>
-    </div>
-    <div class="add-icon" @click="addWatchlist">
-      <i class="fa-solid fa-plus"></i>
-    </div>
-  </div>
-
-  <div v-if="!showSearch" class="FullTextSearch">
-    <input
-      type="text"
-      placeholder="Search"
-      class="searchBar"
-      :value="searchText"
-      @input="searchText = $event.target.value"
-    />
-    <i @click="searchText = ''" class="fa-solid fa-times closeSearch"></i>
-  </div>
-  <div class="ticker-list">
-    <div
-      v-for="(ticker, index) in showSearch
-        ? currentWatchlist.tickers
-        : filteredTickers.filteredTickers"
-      :key="ticker"
-    >
-      <div v-if="!showSearch" style="margin: 20px 0px">
-        <span
-          class="badge"
-          v-for="(watchlist, keyIndex) in filteredTickers.tickerWatchlistMap[
-            ticker
-          ]"
-          :key="keyIndex"
+  <main class="text-white font-inter p-4">
+    <nav class="flex justify-between my-4 items-center">
+      <h1 class="text-2xl font-bold">RSI Tracker</h1>
+      <span class="flex gap-10">
+        <i
+          @click="showSearch = !showSearch"
+          :class="
+            showSearch
+              ? 'fa-solid fa-search fa-xl cursor-pointer'
+              : 'fa-solid fa-arrow-trend-up fa-xl cursor-pointer'
+          "
         >
-          {{ watchlist }}
+        </i>
+        <i
+          @click="showDel = !showDel"
+          class="fa-solid fa-pen-to-square fa-xl cursor-pointer"
+        ></i>
+      </span>
+    </nav>
+    <div v-if="showSearch" class="tabs">
+      <div
+        v-for="(watchlist, index) in watchlists"
+        :key="index"
+        :class="{ active: currentWatchlistIndex === index }"
+        @click="switchWatchlist(index)"
+      >
+        <span v-if="!watchlist.editingName">{{ watchlist.name }}</span>
+        <span v-if="watchlist.editingName">
+          <input
+            type="text"
+            v-model="watchlist.newName"
+            @keydown.enter="renameWatchlist(index)"
+            @blur="renameWatchlist(index)"
+          />
+        </span>
+        <span
+          class="mx-4 cursor-pointer"
+          v-if="!watchlist.editingName & showDel"
+          @click="editWatchlistName(index)"
+        >
+          <i class="fa-solid fa-pencil"></i>
+        </span>
+        <span
+          v-if="watchlist.editingName & showDel"
+          @click="cancelWatchlistNameEdit(index)"
+          class="cursor-pointer"
+        >
+          <i class="fa-solid fa-times"></i>
+        </span>
+        <span
+          v-if="!watchlist.editingName & showDel"
+          @click="deleteWatchlist(index)"
+          class="cursor-pointer"
+        >
+          <i class="fa-solid fa-trash-can"></i>
         </span>
       </div>
-      <div @click="saveNotes()" class="ticker-item-top">
-        <div class="bin" v-if="showDel">
-          <i
-            @click="deleteTicker(index)"
-            class="fa-solid fa-trash-can fa-lg"
-          ></i>
-        </div>
-        <StockRSI :ticker="ticker" />
-      </div>
-      <div
-        v-if="showNotes != ticker"
-        @click="showNotes = ticker"
-        class="ticker-item-bottom"
-        style="color: rgb(119, 119, 119)"
-      >
-        {{
-          notes.hasOwnProperty(ticker)
-            ? notes[ticker].split("\n")[0].slice(0, 35) +
-              (notes[ticker].split("\n")[0].length > 50 ? "..." : "")
-            : "Write something about the company"
-        }}
-      </div>
-      <div v-if="showNotes == ticker">
-        <textarea
-          v-model="notes[ticker]"
-          class="ticker-item-bottom"
-          placeholder="Write something about the company"
-          id="ticker"
-          rows="10"
-        ></textarea>
+      <div class="cursor-pointer ml-5" @click="addWatchlist">
+        <i class="fa-solid fa-plus"></i>
       </div>
     </div>
-    <form @submit.prevent="addTicker" class="add-ticker-form">
+
+    <div
+      v-if="!showSearch"
+      class="flex items-center justify-center relative my-8"
+    >
       <input
-        placeholder="Ex. RELIANCE.NS"
-        id="new-ticker"
-        v-model="newTicker"
+        type="text"
+        placeholder="Search"
+        class="w-11/12 bg-black"
+        :value="searchText"
+        @input="searchText = $event.target.value"
       />
-      <button class="add" type="submit">Add</button>
-    </form>
-  </div>
+      <i
+        @click="searchText = ''"
+        class="fa-solid fa-times absolute right-24"
+      ></i>
+    </div>
+    <div class="flex flex-col items-center">
+      <div
+        v-for="(ticker, index) in showSearch
+          ? currentWatchlist.tickers
+          : filteredTickers.filteredTickers"
+        :key="ticker"
+      >
+        <div v-if="!showSearch" style="margin: 20px 0px">
+          <span
+            class="inline-flex items-center rounded-md bg-violet-50 px-2 py-1 text-sm font-medium text-violet-900 ring-1 ring-inset ring-violet-700/10"
+            v-for="(watchlist, keyIndex) in filteredTickers.tickerWatchlistMap[
+              ticker
+            ]"
+            :key="keyIndex"
+          >
+            {{ watchlist }}
+          </span>
+        </div>
+        <div @click="saveNotes()" class="ticker-item-top">
+          <div class="mr-3 rounded-lg text-violet-500" v-if="showDel">
+            <i
+              @click="deleteTicker(index)"
+              class="fa-solid fa-trash-can fa-lg"
+            ></i>
+          </div>
+          <StockRSI :ticker="ticker" />
+        </div>
+        <div
+          v-if="showNotes != ticker"
+          @click="showNotes = ticker"
+          class="ticker-item-bottom"
+          style="color: rgb(119, 119, 119)"
+        >
+          {{
+            notes.hasOwnProperty(ticker)
+              ? notes[ticker].split("\n")[0].slice(0, 35) +
+                (notes[ticker].split("\n")[0].length > 50 ? "..." : "")
+              : "Write something about the company"
+          }}
+        </div>
+        <div v-if="showNotes == ticker">
+          <textarea
+            v-model="notes[ticker]"
+            class="ticker-item-bottom"
+            placeholder="Write something about the company"
+            id="ticker"
+            rows="10"
+          ></textarea>
+        </div>
+      </div>
+      <form @submit.prevent="addTicker" class="add-ticker-form">
+        <input
+          placeholder="Ex. RELIANCE.NS"
+          id="new-ticker"
+          v-model="newTicker"
+        />
+        <button class="bg-violet-800 ml-2 p-2 rounded-xl" type="submit">
+          Add <i class="fa-solid fa-plus"></i>
+        </button>
+      </form>
+    </div>
+  </main>
 </template>
+
+<style>
+.tabs {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 30px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+.tabs div {
+  padding: 10px;
+  font-size: 18px;
+  margin-right: 5px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tabs div.active {
+  border-bottom: 3px solid rgb(160, 150, 250);
+  color: rgb(160, 150, 250);
+}
+
+.ticker-item-top {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 15px 20px 0px 20px;
+  border-radius: 12px 12px 0px 0px;
+  width: 85vw;
+  background-color: rgb(30, 33, 36);
+}
+
+.ticker-item-bottom {
+  font-size: 16px;
+  color: rgb(162, 162, 162);
+  display: flex;
+  margin-bottom: 10px;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px 20px 20px 20px;
+  border-radius: 0px 0px 12px 12px;
+  width: 85vw;
+  border: none;
+  background-color: rgb(30, 33, 36);
+  font-family: "Roboto", sans-serif;
+  outline: none;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ticker-item-bottom:active {
+  outline: none;
+}
+
+.ticker-item button {
+  margin-left: 10px;
+}
+
+.add-ticker-form {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.add-ticker-form label {
+  margin-right: 10px;
+}
+
+input {
+  background-color: rgb(30, 33, 36);
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  color: white;
+  font-size: 18px;
+  width: 68vw;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+</style>
 
 <script>
 import StockRSI from "./components/StockRSI.vue";
@@ -315,150 +403,3 @@ export default {
   },
 };
 </script>
-
-<style>
-:root {
-  background-color: rgb(16, 21, 25);
-  color: white;
-  font-family: "Roboto", sans-serif;
-}
-
-.tabs {
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  margin-bottom: 30px;
-  overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-}
-
-.tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.tabs div {
-  padding: 10px;
-  cursor: pointer;
-  font-size: 18px;
-  margin-right: 5px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.tabs div.active {
-  border-bottom: 3px solid rgb(160, 150, 250);
-  color: rgb(160, 150, 250);
-}
-
-.ticker-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.FullTextSearch {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.searchBar {
-  width: 85vw;
-}
-
-.closeSearch {
-  position: absolute;
-  right: 8vw;
-}
-
-.ticker-item-top {
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  padding: 15px 20px 0px 20px;
-  border-radius: 12px 12px 0px 0px;
-  width: 85vw;
-  background-color: rgb(30, 33, 36);
-}
-
-.ticker-item-bottom {
-  font-size: 16px;
-  color: rgb(162, 162, 162);
-  display: flex;
-  margin-bottom: 10px;
-  justify-content: start;
-  align-items: center;
-  padding: 10px 20px 20px 20px;
-  border-radius: 0px 0px 12px 12px;
-  width: 85vw;
-  border: none;
-  background-color: rgb(30, 33, 36);
-  font-family: "Roboto", sans-serif;
-  outline: none;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.ticker-item-bottom:active {
-  outline: none;
-}
-
-.ticker-item button {
-  margin-left: 10px;
-}
-
-.add-ticker-form {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.add-ticker-form label {
-  margin-right: 10px;
-}
-
-.bin {
-  margin-right: 20px;
-  padding: 15px;
-  border-radius: 12px;
-  background-color: rgb(38, 37, 48);
-  color: rgb(102, 101, 215);
-}
-
-.add {
-  padding: 10px;
-  border-radius: 12px;
-  background-color: rgb(35, 40, 46);
-  color: rgb(160, 150, 250);
-  border: none;
-  font-size: 18px;
-  margin-left: 10px;
-}
-
-input {
-  background-color: rgb(30, 33, 36);
-  padding: 10px 20px;
-  border-radius: 12px;
-  border: none;
-  color: white;
-  font-size: 18px;
-  width: 68vw;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.badge {
-  background-color: rgb(35, 40, 46);
-  color: rgb(160, 150, 250);
-  padding: 5px 10px;
-  margin-right: 5px;
-  border-radius: 15px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.edit-icon,
-.delete-icon,
-.add-icon {
-  display: inline-block;
-  margin-left: 10px;
-  cursor: pointer;
-}
-</style>
