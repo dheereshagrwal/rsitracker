@@ -9,69 +9,73 @@
   <main class="text-white font-inter p-4">
     <nav class="flex justify-between my-4 items-center">
       <h1 class="text-2xl font-bold">RSI Tracker</h1>
-      <span class="flex gap-10">
+      <button class="flex gap-10">
         <i
           @click="showSearch = !showSearch"
           :class="
             showSearch
-              ? 'fa-solid fa-search fa-xl cursor-pointer'
-              : 'fa-solid fa-arrow-trend-up fa-xl cursor-pointer'
+              ? 'fa-solid fa-search fa-xl'
+              : 'fa-solid fa-arrow-trend-up fa-xl'
           "
         >
         </i>
         <i
           @click="showDel = !showDel"
-          class="fa-solid fa-pen-to-square fa-xl cursor-pointer"
+          class="fa-solid fa-pen-to-square fa-xl"
         ></i>
-      </span>
+      </button>
     </nav>
-    <div v-if="showSearch" class="tabs">
+    <div v-if="showSearch" class="flex items-center tabs mb-10 overflow-x-auto">
       <div
         v-for="(watchlist, index) in watchlists"
         :key="index"
-        :class="{ active: currentWatchlistIndex === index }"
+        :class="{
+          'mt-1 border-b-4 border-violet-500 text-violet-400 font-semibold':
+            currentWatchlistIndex === index,
+          'p-4': true,
+        }"
         @click="switchWatchlist(index)"
       >
-        <span v-if="!watchlist.editingName">{{ watchlist.name }}</span>
+        <button v-if="!watchlist.editingName">{{ watchlist.name }}</button>
         <span v-if="watchlist.editingName">
           <input
             type="text"
             v-model="watchlist.newName"
+            class="bg-black text-white mr-2"
             @keydown.enter="renameWatchlist(index)"
             @blur="renameWatchlist(index)"
           />
         </span>
-        <span
-          class="mx-4 cursor-pointer"
+        <button
+          class="mx-2 md:mx-4"
           v-if="!watchlist.editingName & showDel"
           @click="editWatchlistName(index)"
         >
           <i class="fa-solid fa-pencil"></i>
-        </span>
-        <span
+        </button>
+        <button
           v-if="watchlist.editingName & showDel"
           @click="cancelWatchlistNameEdit(index)"
-          class="cursor-pointer"
         >
-          <i class="fa-solid fa-times"></i>
-        </span>
-        <span
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <button
           v-if="!watchlist.editingName & showDel"
           @click="deleteWatchlist(index)"
           class="cursor-pointer"
         >
           <i class="fa-solid fa-trash-can"></i>
-        </span>
+        </button>
       </div>
-      <div class="cursor-pointer ml-5" @click="addWatchlist">
+      <button
+        class="cursor-pointer ml-5 bg-violet-900 px-3"
+        @click="addWatchlist"
+      >
         <i class="fa-solid fa-plus"></i>
-      </div>
+      </button>
     </div>
 
-    <div
-      v-if="!showSearch"
-      class="flex items-center justify-center relative my-8"
-    >
+    <div v-if="!showSearch" class="flex items-center gap-4 justify-center my-8">
       <input
         type="text"
         placeholder="Search"
@@ -81,7 +85,7 @@
       />
       <i
         @click="searchText = ''"
-        class="fa-solid fa-times absolute right-24"
+        class="fa-solid fa-xmark fa-xl cursor-pointer"
       ></i>
     </div>
     <div class="flex flex-col items-center">
@@ -102,20 +106,23 @@
             {{ watchlist }}
           </span>
         </div>
-        <div @click="saveNotes()" class="ticker-item-top">
-          <div class="mr-3 rounded-lg text-violet-500" v-if="showDel">
+        <div
+          @click="saveNotes()"
+          class="flex items-center px-5 pt-4 rounded-t-xl bg-zinc-800"
+        >
+          <button class="mr-3 rounded-lg text-violet-500" v-if="showDel">
             <i
               @click="deleteTicker(index)"
               class="fa-solid fa-trash-can fa-lg"
             ></i>
-          </div>
+          </button>
           <StockRSI :ticker="ticker" />
         </div>
         <div
           v-if="showNotes != ticker"
           @click="showNotes = ticker"
-          class="ticker-item-bottom"
-          style="color: rgb(119, 119, 119)"
+          class="text-gray-400 cursor-pointer bg-zinc-800 rounded-b-xl p-5 mb-2"
+          style="width: 85vw"
         >
           {{
             notes.hasOwnProperty(ticker)
@@ -127,106 +134,31 @@
         <div v-if="showNotes == ticker">
           <textarea
             v-model="notes[ticker]"
-            class="ticker-item-bottom"
+            class="text-gray-400 bg-zinc-800 rounded-b-xl p-5 outline-none"
             placeholder="Write something about the company"
             id="ticker"
             rows="10"
+            style="width: 85vw"
           ></textarea>
         </div>
       </div>
-      <form @submit.prevent="addTicker" class="add-ticker-form">
+      <form @submit.prevent="addTicker" class="mt-5 flex gap-2 items-center">
         <input
-          placeholder="Ex. RELIANCE.NS"
-          id="new-ticker"
+          placeholder="Ex. AAPL"
+          class="bg-black p-3 rounded-xl"
+          id="newTicker"
           v-model="newTicker"
         />
-        <button class="bg-violet-800 ml-2 p-2 rounded-xl" type="submit">
-          Add <i class="fa-solid fa-plus"></i>
+        <button
+          class="bg-violet-800 p-2 rounded-xl flex items-center gap-1"
+          type="submit"
+        >
+          <span>Add</span><i class="fa-solid fa-plus"></i>
         </button>
       </form>
     </div>
   </main>
 </template>
-
-<style>
-.tabs {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 30px;
-  overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
-}
-
-
-.tabs div {
-  padding: 10px;
-  font-size: 18px;
-  margin-right: 5px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.tabs div.active {
-  border-bottom: 3px solid rgb(160, 150, 250);
-  color: rgb(160, 150, 250);
-}
-
-.ticker-item-top {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 15px 20px 0px 20px;
-  border-radius: 12px 12px 0px 0px;
-  width: 85vw;
-  background-color: rgb(30, 33, 36);
-}
-
-.ticker-item-bottom {
-  font-size: 16px;
-  color: rgb(162, 162, 162);
-  display: flex;
-  margin-bottom: 10px;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 10px 20px 20px 20px;
-  border-radius: 0px 0px 12px 12px;
-  width: 85vw;
-  border: none;
-  background-color: rgb(30, 33, 36);
-  font-family: "Roboto", sans-serif;
-  outline: none;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.ticker-item-bottom:active {
-  outline: none;
-}
-
-.ticker-item button {
-  margin-left: 10px;
-}
-
-.add-ticker-form {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.add-ticker-form label {
-  margin-right: 10px;
-}
-
-input {
-  background-color: rgb(30, 33, 36);
-  padding: 10px 20px;
-  border-radius: 12px;
-  border: none;
-  color: white;
-  font-size: 18px;
-  width: 68vw;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-}
-</style>
 
 <script>
 import StockRSI from "./components/StockRSI.vue";
