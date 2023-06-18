@@ -10,7 +10,16 @@ export default defineEventHandler(async (event) => {
   const timespan = searchParams.get("timespan");
   const limit = searchParams.get("limit");
 
-  console.log(ticker, timespan, limit);
+  // try {
+  //   const yahoo = await axios.get(
+  //     `https://query1.finance.yahoo.com/v7/finance/chart/RELIANCE.NS?range=5d&interval=5m`
+  //   );
+  //   console.log("yahoo", yahoo.data.chart.result[0]);
+  // } catch (error) {
+  //   console.log("error", error);
+  // }
+  
+
   let rsi = 0;
   let percentage = 0;
   let currentPrice = 0;
