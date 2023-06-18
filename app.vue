@@ -7,25 +7,8 @@
   </Head>
 
   <main class="text-white font-inter p-4">
-    <nav class="flex justify-between my-4 items-center">
-      <h1 class="text-2xl font-bold">RSI Tracker</h1>
-      <button class="flex gap-10">
-        <i
-          @click="showSearch = !showSearch"
-          :class="
-            showSearch
-              ? 'fa-solid fa-search fa-xl'
-              : 'fa-solid fa-arrow-trend-up fa-xl'
-          "
-        >
-        </i>
-        <i
-          @click="showDelete = !showDelete"
-          class="fa-solid fa-pen-to-square fa-xl"
-        ></i>
-      </button>
-    </nav>
-    <div v-if="showSearch" class="flex items-center tabs mb-10 overflow-x-auto">
+    <Navbar />
+    <div v-if="store.showSearch" class="flex items-center tabs mb-10 overflow-x-auto">
       <div
         v-for="(watchlist, index) in watchlists"
         :key="index"
@@ -41,26 +24,26 @@
           <input
             type="text"
             v-model="watchlist.newName"
-            class="bg-black text-white mr-2"
+            class="bg-black text-white mr-2 p-2"
             @keydown.enter="renameWatchlist(index)"
             @blur="renameWatchlist(index)"
           />
         </span>
         <button
           class="mx-2 md:mx-4"
-          v-if="!watchlist.editingName & showDelete"
+          v-if="!watchlist.editingName & store.showDelete"
           @click="editWatchlistName(index)"
         >
           <i class="fa-solid fa-pencil"></i>
         </button>
         <button
-          v-if="watchlist.editingName & showDelete"
+          v-if="watchlist.editingName & store.showDelete"
           @click="cancelWatchlistNameEdit(index)"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
         <button
-          v-if="!watchlist.editingName & showDelete"
+          v-if="!watchlist.editingName & store.showDelete"
           @click="deleteWatchlist(index)"
           class="cursor-pointer"
         >
@@ -75,11 +58,11 @@
       </button>
     </div>
 
-    <div v-if="!showSearch" class="flex items-center gap-4 justify-center my-8">
+    <div v-if="!store.showSearch" class="flex items-center gap-4 justify-center my-8">
       <input
         type="text"
         placeholder="Search"
-        class="w-11/12 bg-black"
+        class="w-11/12 bg-black p-3"
         :value="searchText"
         @input="searchText = $event.target.value"
       />
@@ -95,7 +78,7 @@
           : filteredTickers.filteredTickers"
         :key="ticker"
       >
-        <div v-if="!showSearch" style="margin: 20px 0px">
+        <div v-if="!store.showSearch" class="my-3">
           <span
             class="inline-flex items-center rounded-md bg-violet-50 px-2 py-1 text-sm font-medium text-violet-900 ring-1 ring-inset ring-violet-700/10"
             v-for="(watchlist, keyIndex) in filteredTickers.tickerWatchlistMap[
@@ -110,7 +93,7 @@
           @click="saveNotes()"
           class="flex items-center px-5 pt-4 rounded-t-xl bg-zinc-800"
         >
-          <button class="mr-3 rounded-lg text-violet-500" v-if="showDelete">
+          <button class="mr-3 rounded-lg text-violet-500" v-if="store.showDelete">
             <i
               @click="deleteTicker(index)"
               class="fa-solid fa-trash-can fa-lg"
@@ -162,13 +145,14 @@
 
 <script>
 import StockRSI from "./components/StockRSI.vue";
-
+import { useUiStore } from "~/stores/ui";
 export default {
   name: "App",
   components: {
     StockRSI,
   },
-  data() {
+  setup() {
+    const store = useUiStore();
     return {
       watchlists: [
         { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
@@ -177,8 +161,7 @@ export default {
       currentWatchlistIndex: 0,
       newTicker: "",
       searchText: "",
-      showDelete: false,
-      showSearch: true,
+      store,
       notes: {},
       showNotes: false,
     };
