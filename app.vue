@@ -8,7 +8,10 @@
 
   <main class="text-white font-inter p-4">
     <Navbar />
-    <div v-if="store.showSearch" class="flex items-center tabs mb-10 overflow-x-auto">
+    <div
+      v-if="store.showSearch"
+      class="flex items-center tabs mb-10 overflow-x-auto"
+    >
       <div
         v-for="(watchlist, index) in watchlists"
         :key="index"
@@ -19,46 +22,54 @@
         }"
         @click="switchWatchlist(index)"
       >
-        <button v-if="!watchlist.editingName">{{ watchlist.name }}</button>
-        <span v-if="watchlist.editingName">
-          <input
-            type="text"
-            v-model="watchlist.newName"
-            class="bg-black text-white mr-2 p-2"
-            @keydown.enter="renameWatchlist(index)"
-            @blur="renameWatchlist(index)"
-          />
-        </span>
-        <button
-          class="mx-2 md:mx-4"
-          v-if="!watchlist.editingName & store.showDelete"
-          @click="editWatchlistName(index)"
-        >
-          <i class="fa-solid fa-pencil"></i>
-        </button>
-        <button
-          v-if="watchlist.editingName & store.showDelete"
-          @click="cancelWatchlistNameEdit(index)"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-        <button
-          v-if="!watchlist.editingName & store.showDelete"
-          @click="deleteWatchlist(index)"
-          class="cursor-pointer"
-        >
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
+        <div class="flex">
+          <span v-if="watchlist.editingName">
+            <input
+              type="text"
+              v-model="watchlist.newName"
+              class="bg-black text-white mr-2 p-2"
+              @keydown.enter="renameWatchlist(index)"
+              @blur="renameWatchlist(index)"
+            />
+          </span>
+          <button
+            v-if="watchlist.editingName & store.showDelete"
+            @click="cancelWatchlistNameEdit(index)"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-2">
+          <button class="text-sm md:text-base" v-if="!watchlist.editingName">
+            {{ watchlist.name }}
+          </button>
+          <div class="flex gap-3 justify-center">
+            <button
+              v-if="!watchlist.editingName & store.showDelete"
+              @click="editWatchlistName(index)"
+            >
+              <i class="fa-solid fa-pencil"></i>
+            </button>
+            <button
+              v-if="!watchlist.editingName & store.showDelete"
+              @click="deleteWatchlist(index)"
+              class="cursor-pointer"
+            >
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
       </div>
-      <button
-        class="cursor-pointer ml-5 bg-violet-900 px-3"
-        @click="addWatchlist"
-      >
+      <div class="cursor-pointer ml-5 bg-violet-900 px-3" @click="addWatchlist">
         <i class="fa-solid fa-plus"></i>
-      </button>
+      </div>
     </div>
 
-    <div v-if="!store.showSearch" class="flex items-center gap-4 justify-center my-8">
+    <div
+      v-if="!store.showSearch"
+      class="flex items-center gap-4 justify-center my-8"
+    >
       <input
         type="text"
         placeholder="Search"
@@ -93,7 +104,10 @@
           @click="saveNotes()"
           class="flex items-center px-5 pt-4 rounded-t-xl bg-zinc-800"
         >
-          <button class="mr-3 rounded-lg text-violet-500" v-if="store.showDelete">
+          <button
+            class="mr-3 rounded-lg text-violet-500"
+            v-if="store.showDelete"
+          >
             <i
               @click="deleteTicker(index)"
               class="fa-solid fa-trash-can fa-lg"
@@ -147,7 +161,7 @@
 import { useUiStore } from "~/stores/ui";
 export default {
   name: "App",
-  setup() {
+  data() {
     const store = useUiStore();
     return {
       watchlists: [

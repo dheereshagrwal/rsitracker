@@ -1,7 +1,7 @@
 <template>
   <nav class="flex justify-between my-4 items-center">
     <h1 class="text-2xl font-bold">RSI Tracker</h1>
-    <button class="flex gap-10">
+    <div class="flex gap-10 cursor-pointer">
       <i
         @click="store.toggleSearch"
         :class="
@@ -15,7 +15,7 @@
         @click="store.toggleDelete"
         class="fa-solid fa-pen-to-square fa-xl"
       ></i>
-    </button>
+    </div>
   </nav>
 </template>
 <script>
