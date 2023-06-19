@@ -148,7 +148,6 @@ export default {
     const client = useSupabaseClient();
     const watchlists = [
       { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
-      { name: "Watchlist 2", tickers: [], editingName: false, newName: "" },
     ];
     return {
       watchlists,
@@ -180,7 +179,6 @@ export default {
       if (!this.user) {
         this.watchlists = [
           { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
-          { name: "Watchlist 2", tickers: [], editingName: false, newName: "" },
         ];
         return;
       }
@@ -218,26 +216,25 @@ export default {
         console.log(data, error);
       }
     },
-    
+
     deleteTicker(watchlistIndex, tickerIndex) {
       this.watchlists[watchlistIndex].tickers.splice(tickerIndex, 1);
       this.saveWatchlists();
     },
 
     searchWatchlists() {
-      if (this.searchText !== "") {
-        this.searchText = this.searchText.toUpperCase();
-        console.log("searching watchlists", this.searchText);
-        this.filteredWatchlists = this.watchlists.map((watchlist) => {
-          const filteredTickers = watchlist.tickers.filter((ticker) => {
-            return ticker.name.toUpperCase().includes(this.searchText);
-          });
-          return { ...watchlist, tickers: filteredTickers };
-        });
-        console.log("filteredWatchlists", this.filteredWatchlists);
-      } else {
+      if (!this.searchText || this.searchText.trim() === "") {
         this.filteredWatchlists = this.watchlists;
+        return;
       }
+      this.searchText = this.searchText.toUpperCase();
+      console.log("searching watchlists", this.searchText);
+      this.filteredWatchlists = this.watchlists.map((watchlist) => {
+        const filteredTickers = watchlist.tickers.filter((ticker) => {
+          return ticker.name.toUpperCase().includes(this.searchText);
+        });
+        return { ...watchlist, tickers: filteredTickers };
+      });
     },
 
     addTicker() {
