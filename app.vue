@@ -218,6 +218,7 @@ export default {
         console.log(data, error);
       }
     },
+    
     deleteTicker(watchlistIndex, tickerIndex) {
       this.watchlists[watchlistIndex].tickers.splice(tickerIndex, 1);
       this.saveWatchlists();
