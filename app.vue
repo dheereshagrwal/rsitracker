@@ -161,33 +161,63 @@ export default {
       client,
     };
   },
-  mounted() {
-    // Load tickers from local storage
-    const storedWatchlists = localStorage.getItem(`watchlists`);
-    if (storedWatchlists) {
-      this.watchlists = JSON.parse(storedWatchlists);
-      this.watchlists.forEach((watchlist) => {
-        watchlist.editingName = false;
-        watchlist.newName = "";
-      });
-      this.filteredWatchlists = this.watchlists;
-      console.log("filteredWatchlists on mount", this.filteredWatchlists);
-    }
-    // if (this.user) {
-    //   const { data, error } = await this.client
-    //     .from("watchlists")
-    //     .update({ data: this.watchlists })
-    //     .eq("user_id", this.user.id);
-    //   console.log(data, error);
-    // }
-    // Load tickers for current watchlist from local storage
-  },
   watch: {
-    searchText() {
-      this.searchWatchlists();
+    searchText: {
+      handler: "searchWatchlists",
+      immediate: true,
+    },
+    user: {
+      handler: "loadWatchlistsFromDB",
+      immediate: true,
     },
   },
+  mounted() {
+    this.loadWatchlistsFromDB();
+  },
   methods: {
+    async loadWatchlistsFromDB() {
+      console.log("loadWatchlistsFromDB");
+      if (!this.user) {
+        this.watchlists = [
+          { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
+          { name: "Watchlist 2", tickers: [], editingName: false, newName: "" },
+        ];
+        return;
+      }
+      //check if the this.user is already in the database
+      const { data: existingWatchlists, error } = await this.client
+        .from("watchlists")
+        .select("*")
+        .eq("user_id", this.user.id);
+
+      if (existingWatchlists.length > 0) {
+        this.watchlists = existingWatchlists[0].data;
+      }
+    },
+
+    async addWatchlistsToDB() {
+      if (!this.user) return;
+      //check if the this.user is already in the database
+      const { data: existingWatchlists, error } = await this.client
+        .from("watchlists")
+        .select("*")
+        .eq("user_id", this.user.id);
+
+      if (existingWatchlists.length === 0) {
+        //if not, add it
+        const { data, error } = await this.client
+          .from("watchlists")
+          .insert([{ user_id: this.user.id, data: this.watchlists }]);
+      } else {
+        //if yes, update it
+        // this.watchlists = existingWatchlists[0].data;
+        const { data, error } = await this.client
+          .from("watchlists")
+          .update({ data: this.watchlists })
+          .eq("user_id", this.user.id);
+        console.log(data, error);
+      }
+    },
     deleteTicker(watchlistIndex, tickerIndex) {
       this.watchlists[watchlistIndex].tickers.splice(tickerIndex, 1);
       this.saveWatchlists();
@@ -210,6 +240,10 @@ export default {
     },
 
     addTicker() {
+      if (!this.user) {
+        alert("You must be logged in to add a ticker");
+        return;
+      }
       if (this.newTicker) {
         this.newTicker = this.newTicker.toUpperCase();
         const tickerObject = {
@@ -222,7 +256,18 @@ export default {
     },
 
     saveWatchlists() {
-      localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
+      //each watchlist should have a tickers array of unique ticker objects
+      const uniqueWatchlists = this.watchlists.map((watchlist) => {
+        const uniqueTickers = Array.from(
+          new Set(watchlist.tickers.map((ticker) => ticker.name))
+        ).map((tickerName) =>
+          watchlist.tickers.find((ticker) => ticker.name === tickerName)
+        );
+
+        return { ...watchlist, tickers: uniqueTickers };
+      });
+      this.watchlists = uniqueWatchlists;
+      this.addWatchlistsToDB();
     },
     deleteTicker(index) {
       this.currentWatchlist.tickers.splice(index, 1);
@@ -237,8 +282,8 @@ export default {
         newName: "",
       };
       this.watchlists.push(newWatchlist);
-      this.saveWatchlists();
       this.currentWatchlistIndex = this.watchlists.length - 1;
+      this.saveWatchlists();
     },
     deleteWatchlist(index) {
       if (this.watchlists.length > 1) {
