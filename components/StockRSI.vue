@@ -65,15 +65,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="flex justify-between">
+  <div class="flex justify-between w-screen-11/12 p-4 bg-zinc-800 rounded-md">
     <div class="text-lg uppercase">
       {{ ticker }} <span class="text-xs">{{ store.currentView }}</span>
     </div>
-    <div
-      class="absolute font-semibold cursor-pointer"
-      style="right: 9vw"
-      @click="store.toggleView"
-    >
+    <div class="font-semibold cursor-pointer" @click="store.toggleView">
       <div
         v-if="store.currentView !== 'Price'"
         :class="{ 'text-red-500': rsi >= 65, 'text-green-500': rsi <= 30 }"

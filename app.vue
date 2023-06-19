@@ -85,59 +85,39 @@
     </div>
     <div class="flex flex-col items-center">
       <div
-        v-for="(ticker, index) in store.showSearch
-          ? currentWatchlist.tickers
-          : filteredTickers.filteredTickers"
-        :key="ticker"
+        v-if="store.showSearch"
+        v-for="(watchlist, watchlistIndex) in watchlists"
+        :key="watchlistIndex"
       >
-        <div v-if="!store.showSearch" class="my-3">
-          <span
-            class="inline-flex items-center rounded-md bg-violet-50 px-2 py-1 text-sm font-medium text-violet-900 ring-1 ring-inset ring-violet-700/10"
-            v-for="(watchlist, keyIndex) in filteredTickers.tickerWatchlistMap[
-              ticker
-            ]"
-            :key="keyIndex"
+        <div v-if="watchlistIndex === currentWatchlistIndex">
+          <div
+            class="flex items-baseline gap-4"
+            v-for="(ticker, tickerIndex) in watchlist.tickers"
+            :key="tickerIndex"
           >
-            {{ watchlist }}
-          </span>
+            <button
+              v-if="!watchlist.editingName & store.showDelete"
+              @click="deleteTicker(watchlistIndex, tickerIndex)"
+              class="bg-violet-800 p-2 rounded-xl flex items-center"
+            >
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <StockRSI :ticker="ticker.name" class="mb-2" />
+          </div>
         </div>
+      </div>
+      <div
+        v-if="!store.showSearch"
+        v-for="(
+          filteredWatchlist, filteredWatchlistIndex
+        ) in filteredWatchlists"
+        :key="filteredWatchlistIndex"
+      >
         <div
-          @click="saveNotes()"
-          class="flex items-center px-5 pt-4 rounded-t-xl bg-zinc-800"
+          v-for="(ticker, tickerIndex) in filteredWatchlist.tickers"
+          :key="tickerIndex"
         >
-          <button
-            class="mr-3 rounded-lg text-violet-500"
-            v-if="store.showDelete"
-          >
-            <i
-              @click="deleteTicker(index)"
-              class="fa-solid fa-trash-can fa-lg"
-            ></i>
-          </button>
-          <StockRSI :ticker="ticker" />
-        </div>
-        <div
-          v-if="showNotes != ticker"
-          @click="showNotes = ticker"
-          class="text-gray-400 cursor-pointer bg-zinc-800 rounded-b-xl p-5 mb-2"
-          style="width: 85vw"
-        >
-          {{
-            notes.hasOwnProperty(ticker)
-              ? notes[ticker].split("\n")[0].slice(0, 35) +
-                (notes[ticker].split("\n")[0].length > 50 ? "..." : "")
-              : "Write something about the company"
-          }}
-        </div>
-        <div v-if="showNotes == ticker">
-          <textarea
-            v-model="notes[ticker]"
-            class="text-gray-400 bg-zinc-800 rounded-b-xl p-5 outline-none"
-            placeholder="Write something about the company"
-            id="ticker"
-            rows="10"
-            style="width: 85vw"
-          ></textarea>
+          <StockRSI :ticker="ticker.name" class="mb-2" />
         </div>
       </div>
       <form @submit.prevent="addTicker" class="mt-5 flex gap-2 items-center">
@@ -166,35 +146,32 @@ export default {
     const store = useUiStore();
     const user = useSupabaseUser();
     const client = useSupabaseClient();
+    const watchlists = [
+      { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
+      { name: "Watchlist 2", tickers: [], editingName: false, newName: "" },
+    ];
     return {
-      watchlists: [
-        { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
-        { name: "Watchlist 2", tickers: [], editingName: false, newName: "" },
-      ],
+      watchlists,
+      filteredWatchlists: watchlists,
       currentWatchlistIndex: 0,
       newTicker: "",
       searchText: "",
       store,
       user,
       client,
-      notes: {},
-      showNotes: false,
     };
   },
-  async mounted() {
+  mounted() {
     // Load tickers from local storage
     const storedWatchlists = localStorage.getItem(`watchlists`);
-    console.log("storedWatchlists", storedWatchlists);
-    const storedNotes = localStorage.getItem(`Notes`);
     if (storedWatchlists) {
       this.watchlists = JSON.parse(storedWatchlists);
       this.watchlists.forEach((watchlist) => {
         watchlist.editingName = false;
         watchlist.newName = "";
       });
-    }
-    if (storedNotes) {
-      this.notes = JSON.parse(storedNotes);
+      this.filteredWatchlists = this.watchlists;
+      console.log("filteredWatchlists on mount", this.filteredWatchlists);
     }
     // if (this.user) {
     //   const { data, error } = await this.client
@@ -204,23 +181,51 @@ export default {
     //   console.log(data, error);
     // }
     // Load tickers for current watchlist from local storage
-    this.loadTickers();
+  },
+  watch: {
+    searchText() {
+      this.searchWatchlists();
+    },
   },
   methods: {
+    deleteTicker(watchlistIndex, tickerIndex) {
+      this.watchlists[watchlistIndex].tickers.splice(tickerIndex, 1);
+      this.saveWatchlists();
+    },
+
+    searchWatchlists() {
+      if (this.searchText !== "") {
+        this.searchText = this.searchText.toUpperCase();
+        console.log("searching watchlists", this.searchText);
+        this.filteredWatchlists = this.watchlists.map((watchlist) => {
+          const filteredTickers = watchlist.tickers.filter((ticker) => {
+            return ticker.name.toUpperCase().includes(this.searchText);
+          });
+          return { ...watchlist, tickers: filteredTickers };
+        });
+        console.log("filteredWatchlists", this.filteredWatchlists);
+      } else {
+        this.filteredWatchlists = this.watchlists;
+      }
+    },
+
     addTicker() {
       if (this.newTicker) {
-        this.currentWatchlist.tickers.push(this.newTicker.toUpperCase());
+        this.newTicker = this.newTicker.toUpperCase();
+        const tickerObject = {
+          name: this.newTicker,
+        };
+        this.currentWatchlist.tickers.push(tickerObject);
         this.newTicker = "";
-        this.saveTickers();
         this.saveWatchlists();
       }
     },
+
     saveWatchlists() {
       localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
     },
     deleteTicker(index) {
       this.currentWatchlist.tickers.splice(index, 1);
-      this.saveTickers();
       this.saveWatchlists();
     },
     addWatchlist() {
@@ -232,9 +237,8 @@ export default {
         newName: "",
       };
       this.watchlists.push(newWatchlist);
-      localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
+      this.saveWatchlists();
       this.currentWatchlistIndex = this.watchlists.length - 1;
-      this.saveTickers();
     },
     deleteWatchlist(index) {
       if (this.watchlists.length > 1) {
@@ -243,14 +247,10 @@ export default {
           confirm(`Are you sure you want to delete ${watchlistToDelete.name}?`)
         ) {
           this.watchlists.splice(index, 1);
-          localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
-          const localStorageKey = `tickers-${watchlistToDelete.name}`;
-          localStorage.removeItem(localStorageKey);
+          this.saveWatchlists();
           if (index === this.currentWatchlistIndex) {
-            this.currentWatchlistIndex = 0; // reset currentWatchlistIndex if last watchlist is deleted
-            this.loadTickers();
+            this.currentWatchlistIndex = 0; // Reset currentWatchlistIndex if the last watchlist is deleted
           }
-          this.saveTickers();
         }
       }
     },
@@ -269,8 +269,7 @@ export default {
         watchlist.name = watchlist.newName;
         watchlist.newName = "";
         watchlist.editingName = false;
-        this.saveTickers();
-        localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
+        this.saveWatchlists();
       } else {
         watchlist.newName = "";
         watchlist.editingName = false;
@@ -279,69 +278,12 @@ export default {
     switchWatchlist(index) {
       if (index >= 0 && index < this.watchlists.length) {
         this.currentWatchlistIndex = index;
-        this.loadTickers();
       }
-    },
-    loadTickers() {
-      if (this.currentWatchlistIndex >= 0) {
-        const currentWatchlist = this.watchlists[this.currentWatchlistIndex];
-        if (currentWatchlist) {
-          // Load tickers from local storage
-          const storedTickers = localStorage.getItem(
-            `tickers-${currentWatchlist.name}`
-          );
-          if (storedTickers) {
-            currentWatchlist.tickers = JSON.parse(storedTickers);
-          }
-        }
-      } else {
-        this.tickers = [];
-      }
-    },
-    saveTickers() {
-      // Save tickers for current watchlist to local storage
-      const currentWatchlist = this.currentWatchlist;
-      localStorage.setItem(
-        `tickers-${currentWatchlist.name}`,
-        JSON.stringify(currentWatchlist.tickers)
-      );
-    },
-    saveNotes() {
-      localStorage.setItem(`Notes`, JSON.stringify(this.notes));
-      this.showNotes = "";
     },
   },
   computed: {
     currentWatchlist() {
       return this.watchlists[this.currentWatchlistIndex];
-    },
-    filteredTickers() {
-      const searchText = this.searchText.toLowerCase().trim();
-      const filteredTickers = [];
-      const tickerWatchlistMap = {};
-      const currentIndex = this.currentWatchlistIndex;
-      for (let index = 0; index < this.watchlists.length; index++) {
-        this.switchWatchlist(index);
-      }
-      this.switchWatchlist(currentIndex);
-      for (const watchlist of this.watchlists) {
-        for (const ticker of watchlist.tickers) {
-          if (!tickerWatchlistMap[ticker]) {
-            tickerWatchlistMap[ticker] = [];
-          }
-          tickerWatchlistMap[ticker].push(watchlist.name);
-          if (
-            ticker.toLowerCase().includes(searchText) &&
-            !filteredTickers.includes(ticker)
-          ) {
-            filteredTickers.push(ticker);
-          }
-        }
-      }
-      return {
-        tickerWatchlistMap,
-        filteredTickers,
-      };
     },
   },
 };
