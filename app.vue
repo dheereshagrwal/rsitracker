@@ -7,7 +7,7 @@
   </Head>
 
   <main class="text-white font-inter p-4">
-    <Login class="mb-10"/>
+    <Login class="mb-10" />
     <Navbar />
     <div
       v-if="store.showSearch"
@@ -161,10 +161,11 @@
 <script>
 import { useUiStore } from "~/stores/ui";
 export default {
-  name: "App",
+  name: "app",
   data() {
     const store = useUiStore();
     const user = useSupabaseUser();
+    const client = useSupabaseClient();
     return {
       watchlists: [
         { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
@@ -175,13 +176,15 @@ export default {
       searchText: "",
       store,
       user,
+      client,
       notes: {},
       showNotes: false,
     };
   },
-  mounted() {
+  async mounted() {
     // Load tickers from local storage
     const storedWatchlists = localStorage.getItem(`watchlists`);
+    console.log("storedWatchlists", storedWatchlists);
     const storedNotes = localStorage.getItem(`Notes`);
     if (storedWatchlists) {
       this.watchlists = JSON.parse(storedWatchlists);
@@ -193,6 +196,13 @@ export default {
     if (storedNotes) {
       this.notes = JSON.parse(storedNotes);
     }
+    // if (this.user) {
+    //   const { data, error } = await this.client
+    //     .from("watchlists")
+    //     .update({ data: this.watchlists })
+    //     .eq("user_id", this.user.id);
+    //   console.log(data, error);
+    // }
     // Load tickers for current watchlist from local storage
     this.loadTickers();
   },
@@ -202,11 +212,16 @@ export default {
         this.currentWatchlist.tickers.push(this.newTicker.toUpperCase());
         this.newTicker = "";
         this.saveTickers();
+        this.saveWatchlists();
       }
+    },
+    saveWatchlists() {
+      localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
     },
     deleteTicker(index) {
       this.currentWatchlist.tickers.splice(index, 1);
       this.saveTickers();
+      this.saveWatchlists();
     },
     addWatchlist() {
       const watchlistName = `Watchlist ${this.watchlists.length + 1}`;
@@ -217,6 +232,7 @@ export default {
         newName: "",
       };
       this.watchlists.push(newWatchlist);
+      localStorage.setItem(`watchlists`, JSON.stringify(this.watchlists));
       this.currentWatchlistIndex = this.watchlists.length - 1;
       this.saveTickers();
     },
