@@ -7,6 +7,7 @@
   </Head>
 
   <main class="text-white font-inter p-4">
+    <Login class="mb-10"/>
     <Navbar />
     <div
       v-if="store.showSearch"
@@ -163,6 +164,7 @@ export default {
   name: "App",
   data() {
     const store = useUiStore();
+    const user = useSupabaseUser();
     return {
       watchlists: [
         { name: "Watchlist 1", tickers: [], editingName: false, newName: "" },
@@ -172,6 +174,7 @@ export default {
       newTicker: "",
       searchText: "",
       store,
+      user,
       notes: {},
       showNotes: false,
     };
