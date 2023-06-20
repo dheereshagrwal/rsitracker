@@ -2,7 +2,7 @@
   <Head>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/dheereshagrwal/colored-icons@1.6.0/ci.css"
+      href="https://cdn.jsdelivr.net/gh/dheereshagrwal/colored-icons@1.6.1/ci.min.css"
     />
   </Head>
 
